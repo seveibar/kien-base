@@ -1,4 +1,4 @@
 {
     "dataPath" : "path/to/data",
-    "tmpPath"  : "/tmp",
+    "tmpPath"  : "/tmp"
 }
