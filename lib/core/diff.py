@@ -13,4 +13,4 @@ if __name__ == "__main__":
         # Print the test case grade json to stdout
         print json.dumps(diff(sys.argv[0], sys.argv[1]),indent=4)
     else:
-        print "USAGE: diff path/to/student_file /path/to/instructor_file"
+        print "USAGE: diff path/to/instructor_file /path/to/student_file"

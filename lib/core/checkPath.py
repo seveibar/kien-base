@@ -6,5 +6,5 @@
 from os import path
 
 def checkPath():
-    if  not (path.exists("student") or path.exists("instructor") or path.exists("results")):
-        throw Exception("Not in temporary directory! Make sure you execute the command from the directory containing instructor, student and results directories")
+    if not (path.exists("student") or path.exists("instructor") or path.exists("results")):
+        raise Exception("Not in temporary directory! Make sure you execute the command from the directory containing instructor, student and results directories")

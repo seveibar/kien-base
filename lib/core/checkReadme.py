@@ -3,15 +3,16 @@
 usage = "checkReadme [path/to/student/dir]"
 
 import json
-from checkPath
+from checkPath import checkPath
 from os import path
 import sys
+from log import log
 
 # Returns json object representing grade, the score will be 0 for no readme
 # and 1 for readme exists
 def checkReadme(pathToStudent="student"):
 
-    print "Checking for Readme.txt at " + path.abspath(pathToStudent)
+    log("Checking for Readme.txt at " + path.abspath(pathToStudent))
 
     # Try different paths to readme
     if path.exists(path.join(pathToStudent, "README.txt")):
@@ -36,5 +37,5 @@ if __name__ == "__main__":
     else:
         # No Readme directory path provided
         # Make sure we're in tmp directory
-        pathCheck.checkPath()
+        checkPath()
         print json.dumps(checkReadme("student"),indent=4)

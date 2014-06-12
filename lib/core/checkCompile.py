@@ -1,18 +1,19 @@
 
 # This function checks to see if the last compiliation was a success by checking
 # the success boolean within the ../results/compile_out.json file
-usage = "checkCompile [path/to/compile_out.json]
+usage = "checkCompile [path/to/compile_out.json]"
 
 import json
-from checkPath
+from checkPath import checkPath
 from os import path
 import sys
+from log import log
 
 # Returns json object representing grade, the score will be 0 for unsuccessful
 # compile and 1 for successful compile
 def checkCompile(pathToCompileOut="results/compile_out.json"):
 
-    print "Checking for compile success in " + path.abspath(pathToCompileOut)
+    log("Checking for compile success in " + path.abspath(pathToCompileOut))
 
     # Make sure compile_out.json exists and is a file
     if path.isfile(pathToCompileOut):
@@ -27,11 +28,13 @@ def checkCompile(pathToCompileOut="results/compile_out.json"):
                     return {"score":0,"details": compilerOutput["details"]}
                 else:
                     return {"score":0}
-        except
+        except:
             # Compiler output file probably has bad json
-            throw Exception("Error reading compiler output file")
+            log("ERROR: Error reading compiler output file")
+            return {"score":0}
     else:
-        throw Exception("Compiler output was never generated!")
+        log("ERROR: Compiler output was never generated!")
+        return {"score":0}
 
 
 # The following code is executed if this is called from the command line
@@ -45,5 +48,5 @@ if __name__ == "__main__":
     else:
         # No Readme directory path provided
         # Make sure we're in tmp directory
-        pathCheck.checkPath()
+        checkPath()
         print json.dumps(checkCompile("results/compile_out.json"),indent=4)
