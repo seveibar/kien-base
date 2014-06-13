@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
 import argparse
+from os import path
 
 # Parses command line arguments for Setup and returns a Namespace with the
 # variables the user passed
-def parseCreateNewAssignmentArguments(defaultBasePath="../"):
+def parseCreateNewAssignmentArguments(defaultBasePath=None):
+
+    defaultBasePath = path.normpath(path.join(path.dirname(__file__),".."))
 
     parser = argparse.ArgumentParser(description='Creates and sets up new assignment')
 

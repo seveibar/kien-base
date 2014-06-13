@@ -5,6 +5,8 @@ from os import path
 import json
 import baseLoader
 import datetime
+from sys import exit
+import shutil
 
 # Creates new assignment with id {assignmentID} using the resources at the
 # specified base directory (namely the assignment template)
@@ -19,8 +21,13 @@ def createNewAssignment(basePath, assignmentID):
     # Path to assignment template directory
     assignmentTemplateDirectory = path.join(basePath, "assignment_template")
 
+    # Make sure assignment doesn't already exist
+    if path.exists(newAssignmentPath):
+        print "ERROR: Assignment already exists!"
+        exit(1)
+
     # Create default assignment from assignment_template directory
-    native.copyDirectory(assignmentTemplateDirectory, newAssignmentPath)
+    shutil.copytree(assignmentTemplateDirectory, newAssignmentPath)
 
     # Path to new assignment configuration file
     newAssignmentConfigPath = path.join(newAssignmentPath, "assignment.json")
@@ -48,7 +55,7 @@ def createNewAssignment(basePath, assignmentID):
 
         # Write new assignment config file
         assignmentConfigFile = open(newAssignmentConfigPath,'w')
-        json.dump(assignmentConfig, assignmentConfigFile)
+        json.dump(assignmentConfig, assignmentConfigFile, indent=4)
         assignmentConfigFile.close()
 
     except:
@@ -56,7 +63,7 @@ def createNewAssignment(basePath, assignmentID):
         raise
 
 # Called when this script is called from the command line
-if __name__ == "__init__":
+if __name__ == "__main__":
 
     # Get command line arguments (error if any are wrong)
     args = commandLineParser.parseCreateNewAssignmentArguments()

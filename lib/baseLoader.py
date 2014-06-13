@@ -27,3 +27,5 @@ def getBaseConfig(basePath):
         else:
             print "ERROR: Couldn't parse/read base.json, bad json?"
             raise
+
+    return baseConfig
