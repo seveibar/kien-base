@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python ../lib/createNewAssignment.py
+python "$(dirname $0)/../lib/createNewAssignment.py"
