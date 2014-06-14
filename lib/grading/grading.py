@@ -6,6 +6,14 @@
 from os import path
 import json
 from assignmentData import AssignmentData
+from submissionData import SubmissionData
+
+
+# Make sure the assignment has been created by instructor
+def checkAssignmentExists(assignmentPath):
+    if not path.exists(assignmentPath):
+        print "ERROR: Assignment does not exist"
+        raise Exception("Assignment does not exist")
 
 
 # Returns AssignmentData assignment built from assignment at specified path
@@ -31,16 +39,37 @@ def getAssignmentConfig(assignmentPath):
     return AssignmentData(assignmentJson)
 
 
-# Make sure the assignment has been created by instructor
-def checkAssignmentExists(baseConfig, assignmentID):
-    raise NotImplementedError("checkAssignmentExists")
-
-
 # Get all student submission paths for this assignment
 # Returns list of SubmissionData objects
 def getNewSubmissions(submissionsPath, assignmentID):
-    raise NotImplementedError("allNewSubmissions")
+    print "Looking for new submissions in ", submissionsPath
 
+    # Path to the uploads.json file which stores all the latest submissions
+    # information
+    uploadsFilePath = path.join(submissionsPath, assignmentID, "uploads.json")
+
+    if not path.exists(uploadsFilePath):
+        print "No uploads.json file, no new uploads"
+        return []
+
+    # Attempt to parse latest uploads file if it exists
+    try:
+        uploadsFile = open(uploadsFilePath)
+        uploadsData = json.load(uploadsFile)
+        uploadsFile.close()
+    except:
+        print "ERROR: Cannot read or parse uploads.json"
+        raise
+
+    # Successfully loaded and parsed uploads.json
+
+    newSubmissions = []
+
+    # Create SubmissionData object for every submission in uploads
+    for submissionJson in uploadsData["submissions"]:
+        newSubmissions.append(SubmissionData(submissionJson))
+
+    return newSubmissions
 
 # Create temporary directory for assignment
 def createTemporaryDirectory(tmpPath):

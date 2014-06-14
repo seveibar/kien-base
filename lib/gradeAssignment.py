@@ -20,11 +20,11 @@ def gradeAssignment(basePath, assignmentID):
     assignmentsPath = path.join(dataPath, "assignments")
     assignmentPath = path.join(assignmentsPath, assignmentID)
 
+    # Make sure the assignment has been created by instructor
+    checkAssignmentExists(assignmentPath)
+
     # Get assignment configuration
     assignmentConfig = getAssignmentConfig(assignmentPath)
-
-    # Make sure the assignment has been created by instructor
-    checkAssignmentExists(baseConfig, assignmentID)
 
     # Get all student submission paths for this assignment
     allNewSubmissions = getNewSubmissions(submissionsPath, assignmentID)
@@ -33,7 +33,7 @@ def gradeAssignment(basePath, assignmentID):
     for submissionData in allNewSubmissions:
 
         # Path where student's submission was uploaded and extracted to
-        submissionPath = submissionData.path
+        submissionPath = submissionData.getPath(submissionsPath, assignmentID)
 
         # Path where the results of the grading are output to
         submissionOutputPath = path.join(
@@ -79,6 +79,7 @@ def gradeAssignment(basePath, assignmentID):
         # Copy temporary directory's results directory to output directory
         outputResultsDirectory(tmpPath, submissionOutputPath)
 
+    print "All assignments graded!"
 
 
 
