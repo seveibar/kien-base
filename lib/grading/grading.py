@@ -4,7 +4,12 @@
 # assignment. See gradeAssignment.py.
 
 from os import path
+import os
 import json
+from hashlib import md5
+from time import sleep
+import datetime
+
 from assignmentData import AssignmentData
 from submissionData import SubmissionData
 
@@ -73,23 +78,43 @@ def getNewSubmissions(submissionsPath, assignmentID):
 
     return newSubmissions
 
-# Create temporary directory for assignment
+
+# Create sandbox directory for assignment, return path
 def createTemporaryDirectory(tmpPath):
-    raise NotImplementedError("createTemporaryDirectory")
+
+    # Generate path to sandbox based on time
+    sandboxPath = path.join(tmpPath,
+                            md5(str(datetime.datetime.now())).hexdigest())
+
+    # If path exists, regenerate until we have a novel path
+    while path.exists(sandboxPath):
+        sleep(100)
+        sandboxPath = path.join(tmpPath,
+                                md5(str(datetime.datetime.now())).hexdigest())
+
+    # Create sandbox directory
+    try:
+        print "Creating sandbox directory at ", sandboxPath
+        os.mkdir(sandboxPath)
+    except:
+        print "ERROR: Error creating sandbox directory within ", tmpPath
+        raise
+
+    return sandboxPath
 
 
 # Copy (or symlink) instructor directory
-def linkInstructorDirectory(assignmentPath, tmpPath):
+def linkInstructorDirectory(assignmentPath, sandboxPath):
     raise NotImplementedError("linkInstructorDirectory")
 
 
 # Create results directory
-def createResultsDirectory(tmpPath):
+def createResultsDirectory(sandboxPath):
     raise NotImplementedError("createResultsDirectory")
 
 
 # Copy student files
-def copyStudentFiles(submissionPath, tmpPath):
+def copyStudentFiles(submissionPath, sandboxPath):
     raise NotImplementedError("copyStudentFiles")
 
 
@@ -118,6 +143,6 @@ def outputFinalGrade(submissionOutputPath, finalGrade):
     raise NotImplementedError("outputFinalGrade")
 
 
-# Copy temporary directory's results directory to output directory
-def outputResultsDirectory(tmpPath, submissionOutputPath):
+# Copy sandbox directory's results directory to output directory
+def outputResultsDirectory(sandboxPath, submissionOutputPath):
     raise NotImplementedError("outputResultsDirectory")
