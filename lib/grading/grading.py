@@ -9,6 +9,8 @@ import json
 from hashlib import md5
 from time import sleep
 import datetime
+import subprocess
+import shutil
 
 from assignmentData import AssignmentData
 from submissionData import SubmissionData
@@ -82,6 +84,15 @@ def getNewSubmissions(submissionsPath, assignmentID):
 # Create sandbox directory for assignment, return path
 def createTemporaryDirectory(tmpPath):
 
+    # Create temporary directory if it doesn't exist
+    if not path.exists(tmpPath):
+        try:
+            print "Temporary directory does not exist, creating at ", tmpPath
+            os.mkdir(tmpPath)
+        except:
+            print "ERROR: Couldn't create temporary directory!"
+            raise
+
     # Generate path to sandbox based on time
     sandboxPath = path.join(tmpPath,
                             md5(str(datetime.datetime.now())).hexdigest())
@@ -105,17 +116,50 @@ def createTemporaryDirectory(tmpPath):
 
 # Copy (or symlink) instructor directory
 def linkInstructorDirectory(assignmentPath, sandboxPath):
-    raise NotImplementedError("linkInstructorDirectory")
+
+    # Path to instructor directory
+    instructorDirectoryPath = path.join(assignmentPath, "instructor")
+
+    # Path to symlink
+    instructorDirectoryLink = path.join(sandboxPath, "instructor")
+
+    # Command to create symbolic link
+    cmd = "ln -s " + instructorDirectoryPath + " " + instructorDirectoryLink
+
+    print "Creating symlink to instructor directory"
+    print cmd
+
+    try:
+        subprocess.check_output(cmd, shell=True)
+    except:
+        print "ERROR: Cannot create symlink"
+        raise
 
 
 # Create results directory
 def createResultsDirectory(sandboxPath):
-    raise NotImplementedError("createResultsDirectory")
+
+    # Path to results directory within sandbox
+    resultsPath = path.join(sandboxPath, "results")
+
+    try:
+        os.mkdir(resultsPath)
+    except:
+        print "ERROR: Cannot create results directory"
+        raise
 
 
 # Copy student files
 def copyStudentFiles(submissionPath, sandboxPath):
-    raise NotImplementedError("copyStudentFiles")
+
+    # Path to copy student files to
+    studentPath = path.join(sandboxPath, "students")
+
+    try:
+        shutil.copytree(submissionPath, studentPath)
+    except:
+        print "ERROR: Couldn't copy student files"
+        raise
 
 
 # Execute any pre-grading steps (typically compile and run)
