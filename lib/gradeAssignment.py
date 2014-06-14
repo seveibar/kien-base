@@ -41,7 +41,7 @@ def gradeAssignment(basePath, assignmentID):
             str(submissionData.submissionNumber))
 
         # Create sandbox directory for assignment within temporary directory
-        sandboxPath = createTemporaryDirectory(tmpPath)
+        sandboxPath = createSandBoxDirectory(tmpPath)
 
         # Copy (or symlink) instructor directory
         linkInstructorDirectory(assignmentPath, sandboxPath)
@@ -49,14 +49,14 @@ def gradeAssignment(basePath, assignmentID):
         # Create results directory
         createResultsDirectory(sandboxPath)
 
+        # Copy student files
+        copyStudentFiles(submissionPath, sandboxPath)
+
         # Stores results of each test case
         testCaseResults = []
 
         # Loop through test cases and execute
-        for testCase in assignmentPath:
-
-            # Copy student files
-            copyStudentFiles(submissionPath, sandboxPath)
+        for testCase in assignmentConfig.testCases:
 
             # Execute any pre-grading steps (typically compile and run)
             runTestCase(sandboxPath, testCase)
@@ -65,7 +65,10 @@ def gradeAssignment(basePath, assignmentID):
             testCaseGrade = gradeTestCase(sandboxPath, testCase)
 
             # Add test case grade to the list of test cases
-            testCaseResults.append((testCase.name, testCaseGrade))
+            testCaseResults.append((testCase, testCaseGrade))
+
+            # Reset students directory
+            # cleanStudentDirectory(submissionPath, sandboxPath)
 
         # Get final grade data from all the test case grades
         finalGrade = getFinalGrade(assignmentConfig, testCaseResults)

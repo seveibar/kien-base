@@ -2,12 +2,14 @@
 # Used to log the grading and running of an assignment, outputting messages
 # a global log file
 
+# This has to be an absolute path if used
 logFilePath = None
+
 
 def log(*args):
 
     # Convert arguments to more manageable string
-    logString = "  ".join(map(str,args))
+    logString = "  ".join(map(str, args))
 
     # If the log file path was specified, output to log file
     if (logFilePath):
@@ -18,5 +20,5 @@ def log(*args):
         except:
             print "ERROR: COULD NOT OPEN LOGFILE"
     else:
-        print logString
-        # pass
+        # print logString
+        pass

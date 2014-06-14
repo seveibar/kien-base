@@ -11,9 +11,11 @@ from time import sleep
 import datetime
 import subprocess
 import shutil
+import pickle
 
 from assignmentData import AssignmentData
 from submissionData import SubmissionData
+from gradingUtils import replaceJsonRoot
 
 
 # Make sure the assignment has been created by instructor
@@ -82,7 +84,7 @@ def getNewSubmissions(submissionsPath, assignmentID):
 
 
 # Create sandbox directory for assignment, return path
-def createTemporaryDirectory(tmpPath):
+def createSandBoxDirectory(tmpPath):
 
     # Create temporary directory if it doesn't exist
     if not path.exists(tmpPath):
@@ -94,34 +96,34 @@ def createTemporaryDirectory(tmpPath):
             raise
 
     # Generate path to sandbox based on time
-    sandboxPath = path.join(tmpPath,
+    sandBoxPath = path.join(tmpPath,
                             md5(str(datetime.datetime.now())).hexdigest())
 
     # If path exists, regenerate until we have a novel path
-    while path.exists(sandboxPath):
+    while path.exists(sandBoxPath):
         sleep(100)
-        sandboxPath = path.join(tmpPath,
+        sandBoxPath = path.join(tmpPath,
                                 md5(str(datetime.datetime.now())).hexdigest())
 
     # Create sandbox directory
     try:
-        print "Creating sandbox directory at ", sandboxPath
-        os.mkdir(sandboxPath)
+        print "Creating sandbox directory at ", sandBoxPath
+        os.mkdir(sandBoxPath)
     except:
         print "ERROR: Error creating sandbox directory within ", tmpPath
         raise
 
-    return sandboxPath
+    return sandBoxPath
 
 
 # Copy (or symlink) instructor directory
-def linkInstructorDirectory(assignmentPath, sandboxPath):
+def linkInstructorDirectory(assignmentPath, sandBoxPath):
 
     # Path to instructor directory
     instructorDirectoryPath = path.join(assignmentPath, "instructor")
 
     # Path to symlink
-    instructorDirectoryLink = path.join(sandboxPath, "instructor")
+    instructorDirectoryLink = path.join(sandBoxPath, "instructor")
 
     # Command to create symbolic link
     cmd = "ln -s " + instructorDirectoryPath + " " + instructorDirectoryLink
@@ -137,10 +139,10 @@ def linkInstructorDirectory(assignmentPath, sandboxPath):
 
 
 # Create results directory
-def createResultsDirectory(sandboxPath):
+def createResultsDirectory(sandBoxPath):
 
     # Path to results directory within sandbox
-    resultsPath = path.join(sandboxPath, "results")
+    resultsPath = path.join(sandBoxPath, "results")
 
     try:
         os.mkdir(resultsPath)
@@ -150,10 +152,10 @@ def createResultsDirectory(sandboxPath):
 
 
 # Copy student files
-def copyStudentFiles(submissionPath, sandboxPath):
+def copyStudentFiles(submissionPath, sandBoxPath):
 
     # Path to copy student files to
-    studentPath = path.join(sandboxPath, "students")
+    studentPath = path.join(sandBoxPath, "student")
 
     try:
         shutil.copytree(submissionPath, studentPath)
@@ -163,13 +165,198 @@ def copyStudentFiles(submissionPath, sandboxPath):
 
 
 # Execute any pre-grading steps (typically compile and run)
-def runTestCase(tmpPath, testCase):
-    raise NotImplementedError("runTestCase")
+def runTestCase(sandBoxPath, testCase):
+
+    print "Running Test Case:", testCase.title
+
+    # Path to results directory
+    resultsPath = path.join(sandBoxPath, "results")
+
+    # Path to student directory
+    studentPath = path.join(sandBoxPath, "student")
+
+    # Run Compilation commands
+
+    # Store stdout and stderr for compilation output
+    compileOutput = None
+    # True if compile executed successfully
+    success = None
+
+    # If compile command is blank, no compilation is necessary
+    if testCase.compile == "" or testCase.compile is None:
+        print "No compilation command"
+        compileOutput = ""
+        success = True
+    else:
+        try:
+            print "Running compilation command:", testCase.compile
+
+            # Attempt to get compilation output and run command with the
+            # sandbox as the current working directory
+            compileOutput = subprocess.check_output(testCase.compile,
+                                                    stderr=subprocess.STDOUT,
+                                                    cwd=sandBoxPath,
+                                                    shell=True)
+            success = True
+        except subprocess.CalledProcessError as error:
+            # There was an error during compilation
+            compileOutput = error.output
+            success = False
+        except:
+            print "ERROR: There was an unusual error during compiliation"
+            raise
+
+    # Create the compile out data object
+    compileOutJson = {
+        "success": success,
+        "details": compileOutput
+    }
+
+    # Get path to compile_out.json
+    compileOutPath = path.join(resultsPath, "compile_out.json")
+
+    # Write to compile_out.json
+    try:
+        print "Writing compile output file"
+        compileOutFile = open(compileOutPath, 'w')
+        json.dump(compileOutJson, compileOutFile)
+        compileOutFile.close()
+    except:
+        print "ERROR: Cannot write to compile_out.json"
+        raise
+
+    # Run "run" command as untrusted user
+
+    runOutput = None
+    success = None
+
+    # If compile command is blank, no compilation is necessary
+    if testCase.run == "" or testCase.run is None:
+        print "No run command"
+        runOutput = ""
+        success = True
+    else:
+        try:
+            print "Running run command (within student):", testCase.run
+
+            # TODO CRITICAL Switch to untrusted user!
+            # This can be done via an untrusted user executable called
+            # with the run command as it's arguments
+
+            # Attempt to get compilation output and run command with the
+            # sandbox as the current working directory
+            runOutput = subprocess.check_output(testCase.run,
+                                                cwd=studentPath,
+                                                shell=True)
+            success = True
+        except subprocess.CalledProcessError as error:
+            # There was an error during compilation
+            runOutput = error.output
+            success = False
+        except:
+            print "ERROR: There was an unusual error during compiliation"
+            raise
 
 
 # Grade results of assignment
-def gradeTestCase(tmpPath, testCase):
-    raise NotImplementedError("gradeTestCase")
+# Return a test case grade object
+def gradeTestCase(sandBoxPath, testCase):
+
+    print "Grading Test Case:", testCase.title
+
+    # Path to results directory
+    resultsPath = path.join(sandBoxPath, "results")
+
+    # Path to student directory
+    studentPath = path.join(sandBoxPath, "student")
+
+    # Run grade command
+
+    # Store stdout for outputting grade output
+    gradeOutput = None
+
+    # If compile command is blank, no compilation is necessary
+    if testCase.grade == "" or testCase.grade is None:
+        print "ERROR: No grade command"
+        raise Exception("Grade command is required")
+    else:
+        try:
+            print "Running grade command:", testCase.grade
+
+            # Attempt to get compilation output and run command with the
+            # sandbox as the current working directory
+            gradeOutput = subprocess.check_output(testCase.grade,
+                                                  cwd=sandBoxPath,
+                                                  shell=True)
+        except:
+            print "ERROR: There was an error grading this test case"
+            raise
+
+    # The server needs to display certain output files to the student when they
+    # view the server, but it doesn't know which of the student's files are
+    # important without parsing the grades object and looking for paths to
+    # student/
+
+    # Attempt to parse grade output
+    try:
+        gradeOutputJson = json.loads(gradeOutput)
+    except:
+        print "ERROR: Grade function outputted bad JSON"
+        print pickle.dumps(gradeOutput)
+        raise
+
+    print "Copying relevant files from student/ to results/"
+
+    # Look for any paths to student/ and replace them with paths to results/
+    changedPaths = replaceJsonRoot(gradeOutputJson, "student", "results")
+
+    # Copy each changed path (from student) to results
+    for oldPath in changedPaths:
+
+        # make sure old path refers to the sandbox directory
+        oldPathFull = path.join(sandBoxPath, oldPath)
+
+        # Get the path we're moving it to (in results)
+        newPathFull = path.join(sandBoxPath, "results" + oldPath[len("student"):])
+
+        # Create any directories that don't exist in results
+        # e.g. student/testcase1/out.txt requires creation of results/testcase1
+        try:
+            os.makedirs(os.basename(newPathFull))
+        except OSError:
+            # Directory already exists
+            pass
+        except:
+            print "ERROR: Problem creating a directory within results"
+            raise
+
+        # Copy file from results to students
+        try:
+            print "Copying " + oldPath + " to results"
+            shutil.copyfile(oldPathFull, newPathFull)
+        except:
+            print "ERROR: Couldn't copy file from students to results"
+
+    return gradeOutputJson
+
+
+# Reset the student directory (so it is how it was submitted)
+# TODO this shouldn't be done if testCase says not to
+# TODO more efficient reset then deleting and copying
+def cleanStudentDirectory(submissionPath, sandBoxPath):
+
+    # Path to student directory to reset
+    studentPath = path.join(sandBoxPath, "student")
+
+    print "Reseting student directory"
+    try:
+        print studentPath
+        shutil.rmtree(studentPath)
+    except:
+        print "ERROR: Problem reseting student directory"
+        raise
+
+    copyStudentFiles(submissionPath, sandBoxPath)
 
 
 # Get final grade data from all the test case grades
@@ -188,5 +375,5 @@ def outputFinalGrade(submissionOutputPath, finalGrade):
 
 
 # Copy sandbox directory's results directory to output directory
-def outputResultsDirectory(sandboxPath, submissionOutputPath):
+def outputResultsDirectory(sandBoxPath, submissionOutputPath):
     raise NotImplementedError("outputResultsDirectory")
