@@ -42,11 +42,11 @@ def getAssignmentConfig(assignmentPath):
 # Get all student submission paths for this assignment
 # Returns list of SubmissionData objects
 def getNewSubmissions(submissionsPath, assignmentID):
-    print "Looking for new submissions in ", submissionsPath
 
     # Path to the uploads.json file which stores all the latest submissions
     # information
     uploadsFilePath = path.join(submissionsPath, assignmentID, "uploads.json")
+    print "Looking for new submissions in ", uploadsFilePath
 
     if not path.exists(uploadsFilePath):
         print "No uploads.json file, no new uploads"
@@ -68,6 +68,8 @@ def getNewSubmissions(submissionsPath, assignmentID):
     # Create SubmissionData object for every submission in uploads
     for submissionJson in uploadsData["submissions"]:
         newSubmissions.append(SubmissionData(submissionJson))
+
+    print "Found " + str(len(newSubmissions)) + " new submissions"
 
     return newSubmissions
 

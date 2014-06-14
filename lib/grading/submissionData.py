@@ -20,7 +20,7 @@ class SubmissionData:
         try:
             self.submitTime = submissionJson["submitTime"]
             self.student = submissionJson["student"]
-            self.submissionNumber = submissionJson["submissionNumber"]
+            self.submissionNumber = int(submissionJson["submissionNumber"])
         except:
             print "ERROR: Missing attribute in uploads.json within a submission"
             raise

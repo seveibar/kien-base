@@ -37,8 +37,8 @@ def gradeAssignment(basePath, assignmentID):
 
         # Path where the results of the grading are output to
         submissionOutputPath = path.join(
-            resultsPath, assignmentID, submissionData.studentID,
-            submissionData.submissionNumber)
+            resultsPath, assignmentID, submissionData.student,
+            str(submissionData.submissionNumber))
 
         # Create temporary directory for assignment
         tmpPath = createTemporaryDirectory(tmpPath)
