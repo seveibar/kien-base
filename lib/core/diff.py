@@ -15,12 +15,14 @@ def diff(filePath1, filePath2, outputDifferencePath):
         lines1 = open(filePath1).readlines()
     except:
         print "ERROR: Couldn't read file", filePath1
+        raise
 
     # Open the second file
     try:
         lines2 = open(filePath2).readlines()
     except:
         print "ERROR: Couldn't read file", filePath2
+        raise
 
     # Store line numbers of lines with any difference
     differences = []
