@@ -41,16 +41,16 @@ def gradeAssignment(basePath, assignmentID):
             str(submissionData.submissionNumber))
 
         # Create sandbox directory for assignment within temporary directory
-        sandboxPath = createSandBoxDirectory(tmpPath)
+        sandBoxPath = createSandBoxDirectory(tmpPath)
 
         # Copy (or symlink) instructor directory
-        linkInstructorDirectory(assignmentPath, sandboxPath)
+        linkInstructorDirectory(assignmentPath, sandBoxPath)
 
         # Create results directory
-        createResultsDirectory(sandboxPath)
+        createResultsDirectory(sandBoxPath)
 
         # Copy student files
-        copyStudentFiles(submissionPath, sandboxPath)
+        copyStudentFiles(submissionPath, sandBoxPath)
 
         # Stores results of each test case
         testCaseResults = []
@@ -59,19 +59,21 @@ def gradeAssignment(basePath, assignmentID):
         for testCase in assignmentConfig.testCases:
 
             # Execute any pre-grading steps (typically compile and run)
-            runTestCase(sandboxPath, testCase)
+            runTestCase(sandBoxPath, testCase)
 
             # Grade results of assignment
-            testCaseGrade = gradeTestCase(sandboxPath, testCase)
+            testCaseGrade = gradeTestCase(sandBoxPath, testCase)
 
             # Add test case grade to the list of test cases
             testCaseResults.append((testCase, testCaseGrade))
 
             # Reset students directory
-            # cleanStudentDirectory(submissionPath, sandboxPath)
+            # cleanStudentDirectory(submissionPath, sandBoxPath)
 
         # Get final grade data from all the test case grades
-        finalGrade = getFinalGrade(assignmentConfig, testCaseResults)
+        finalGrade = getFinalGrade(assignmentConfig,
+                                   testCaseResults,
+                                   submissionData)
 
         # Create submission output directory
         createOutputDirectory(submissionOutputPath)
@@ -80,7 +82,7 @@ def gradeAssignment(basePath, assignmentID):
         outputFinalGrade(submissionOutputPath, finalGrade)
 
         # Copy temporary directory's results directory to output directory
-        outputResultsDirectory(tmpPath, submissionOutputPath)
+        outputResultsDirectory(sandBoxPath, submissionOutputPath)
 
     print "All assignments graded!"
 

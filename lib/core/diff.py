@@ -60,7 +60,12 @@ def diff(filePath1, filePath2, outputDifferencePath):
     # Return the score object
     return {
         "score": score,
-        "total": lowestLineCount
+        "total": lowestLineCount,
+        "diff": {
+            "student": filePath1,
+            "instructor": filePath2,
+            "difference": outputDifferencePath
+        }
     }
 
 

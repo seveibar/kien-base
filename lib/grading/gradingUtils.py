@@ -11,7 +11,7 @@ def replaceJsonRoot(jsonObject, oldRoot, newRoot):
     for k, v in jsonObject.iteritems():
 
         # If the field is a string, check if it has the oldRoot
-        if isinstance(v, str) and v[:len(oldRoot)] == oldRoot:
+        if isinstance(v, basestring) and v[:len(oldRoot)] == oldRoot:
 
             # Store the old root and replace
             changedRoots.append(v)

@@ -12,6 +12,7 @@ import datetime
 import subprocess
 import shutil
 import pickle
+import errno
 
 from assignmentData import AssignmentData
 from submissionData import SubmissionData
@@ -264,12 +265,6 @@ def gradeTestCase(sandBoxPath, testCase):
 
     print "Grading Test Case:", testCase.title
 
-    # Path to results directory
-    resultsPath = path.join(sandBoxPath, "results")
-
-    # Path to student directory
-    studentPath = path.join(sandBoxPath, "student")
-
     # Run grade command
 
     # Store stdout for outputting grade output
@@ -306,7 +301,6 @@ def gradeTestCase(sandBoxPath, testCase):
         raise
 
     print "Copying relevant files from student/ to results/"
-
     # Look for any paths to student/ and replace them with paths to results/
     changedPaths = replaceJsonRoot(gradeOutputJson, "student", "results")
 
@@ -317,12 +311,13 @@ def gradeTestCase(sandBoxPath, testCase):
         oldPathFull = path.join(sandBoxPath, oldPath)
 
         # Get the path we're moving it to (in results)
-        newPathFull = path.join(sandBoxPath, "results" + oldPath[len("student"):])
+        newPathFull = path.join(sandBoxPath, "results" +
+                                             oldPath[len("student"):])
 
         # Create any directories that don't exist in results
         # e.g. student/testcase1/out.txt requires creation of results/testcase1
         try:
-            os.makedirs(os.basename(newPathFull))
+            os.makedirs(path.basename(newPathFull))
         except OSError:
             # Directory already exists
             pass
@@ -333,9 +328,12 @@ def gradeTestCase(sandBoxPath, testCase):
         # Copy file from results to students
         try:
             print "Copying " + oldPath + " to results"
-            shutil.copyfile(oldPathFull, newPathFull)
+            # TODO this can probably be a move
+            shutil.move(oldPathFull, newPathFull)
         except:
             print "ERROR: Couldn't copy file from students to results"
+
+    # Adjust score
 
     return gradeOutputJson
 
@@ -360,20 +358,89 @@ def cleanStudentDirectory(submissionPath, sandBoxPath):
 
 
 # Get final grade data from all the test case grades
-def getFinalGrade(assignmentConfig, testCaseResults):
-    raise NotImplementedError("getFinalGrade")
+# This returns the json for the submission.json file
+# testCaseResults = list of tuples [(testCase, gradeOutput)]
+def getFinalGrade(assignmentConfig, testCaseResults, submissionData):
+
+    # All the fields necessary for the submission.json file
+    submissionJson = {}
+
+    submissionJson["testcases"] = []
+    submissionJson["submission_number"] = submissionData.submissionNumber
+    submissionJson["submission_time"] = submissionData.submitTime
+
+    # Points awarded, incremented when looping through test cases
+    awardedPointsSum = 0
+
+    # Loop through test cases, calculate grade and write fields to submission
+    # json
+    for testCase, result in testCaseResults:
+
+        # The percentage this student got on a test case
+        percentageCorrect = result["score"]
+        if "total" in result:
+            percentageCorrect /= float(result["total"])
+
+        # Calculate points awarded for test case based on test case total
+        pointsAwarded = int(testCase.points * percentageCorrect)
+
+        # Add test case points to the sums
+        awardedPointsSum += pointsAwarded
+
+        # Add all the information for this test case to the submission data
+        submissionJson["testcases"].append({
+            "test_name": testCase.title,
+            "points_awarded": pointsAwarded,
+            "message": result.get("message", ""),
+            "diff": result.get("diff", "")
+        })
+
+    submissionJson["points_awarded"] = awardedPointsSum
+
+    return submissionJson
 
 
 # Create submission output directory
 def createOutputDirectory(submissionOutputPath):
-    raise NotImplementedError("createOutputDirectory")
+    print "Creating submission output directory"
+    try:
+        os.makedirs(submissionOutputPath)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass  # The user directory may already exist
+        else:
+            print "ERROR: Problem creating directory!"
+            raise
 
 
 # Write final grade data to submission output directory
 def outputFinalGrade(submissionOutputPath, finalGrade):
-    raise NotImplementedError("outputFinalGrade")
+    print "Writing automated testing grade (submission.json)"
+
+    # The submission.json file is at the root of the submission directory
+    submissionJsonPath = path.join(submissionOutputPath, "submission.json")
+
+    try:
+        submissionFile = open(submissionJsonPath,'w')
+        json.dump(finalGrade, submissionFile)
+        submissionFile.close()
+    except:
+        print "ERROR: Cannot write to submission.json file"
+        raise
 
 
 # Copy sandbox directory's results directory to output directory
 def outputResultsDirectory(sandBoxPath, submissionOutputPath):
-    raise NotImplementedError("outputResultsDirectory")
+    print "Moving results folder from sandbox to submission directory"
+
+    # Path to results within sandbox
+    sandBoxResultsPath = path.join(sandBoxPath, "results")
+
+    # Path to move results to within submission directory
+    submissionResultsPath = path.join(submissionOutputPath, "results")
+
+    try:
+        shutil.move(sandBoxResultsPath, submissionResultsPath)
+    except:
+        print "ERROR: Cannot move results directory to submission directory"
+        raise
