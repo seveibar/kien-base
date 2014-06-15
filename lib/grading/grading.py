@@ -236,13 +236,11 @@ def runTestCase(sandBoxPath, testCase):
 
     # Run "run" command as untrusted user
 
-    runOutput = None
     success = None
 
     # If compile command is blank, no compilation is necessary
     if testCase.run == "" or testCase.run is None:
         print "No run command"
-        runOutput = ""
         success = True
     else:
         try:
@@ -254,13 +252,12 @@ def runTestCase(sandBoxPath, testCase):
 
             # Attempt to get compilation output and run command with the
             # sandbox as the current working directory
-            runOutput = subprocess.check_output(testCase.run,
-                                                cwd=studentPath,
-                                                shell=True)
+            subprocess.check_output(testCase.run,
+                                    cwd=studentPath,
+                                    shell=True)
             success = True
         except subprocess.CalledProcessError as error:
             # There was an error during compilation
-            runOutput = error.output
             success = False
         except:
             print "ERROR: There was an unusual error during compiliation"
@@ -429,7 +426,7 @@ def outputFinalGrade(submissionOutputPath, finalGrade):
     submissionJsonPath = path.join(submissionOutputPath, "submission.json")
 
     try:
-        submissionFile = open(submissionJsonPath,'w')
+        submissionFile = open(submissionJsonPath, 'w')
         json.dump(finalGrade, submissionFile)
         submissionFile.close()
     except:
@@ -452,3 +449,15 @@ def outputResultsDirectory(sandBoxPath, submissionOutputPath):
     except:
         print "ERROR: Cannot move results directory to submission directory"
         raise
+
+
+# Remove temporary (sandbox) directory
+def removeSandBoxDirectory(sandBoxPath):
+
+    print "Removing sandbox directory"
+
+    try:
+        shutil.rmtree(sandBoxPath)
+    except:
+        print "ERROR: Couldn't delete sandbox directory!"
+        # no need to raise, the temporary directory is probably auto-cleared

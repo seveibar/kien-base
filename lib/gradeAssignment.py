@@ -84,6 +84,9 @@ def gradeAssignment(basePath, assignmentID):
         # Copy temporary directory's results directory to output directory
         outputResultsDirectory(sandBoxPath, submissionOutputPath)
 
+        # Remove temporary (sandbox) directory
+        removeSandBoxDirectory(sandBoxPath)
+
     print "All assignments graded!"
 
 
