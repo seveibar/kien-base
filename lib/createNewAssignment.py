@@ -18,6 +18,7 @@ def createNewAssignment(basePath, assignmentID):
 
     # Path to new assignment directory
     newAssignmentPath = path.join(baseConfig["dataPath"], "assignments", assignmentID)
+    
     # Path to assignment template directory
     assignmentTemplateDirectory = path.join(basePath, "assignment_template")
 
