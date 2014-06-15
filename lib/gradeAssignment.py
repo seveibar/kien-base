@@ -90,8 +90,6 @@ def gradeAssignment(basePath, assignmentID):
     print "All assignments graded!"
 
 
-
-
 # Program was called from command line
 if __name__ == "__main__":
 
