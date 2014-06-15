@@ -306,6 +306,7 @@ def gradeTestCase(sandBoxPath, testCase):
         raise
 
     print "Copying relevant files from student/ to results/"
+
     # Look for any paths to student/ and replace them with paths to results/
     changedPaths = replaceJsonRoot(gradeOutputJson, "student", "results")
 
@@ -322,7 +323,7 @@ def gradeTestCase(sandBoxPath, testCase):
         # Create any directories that don't exist in results
         # e.g. student/testcase1/out.txt requires creation of results/testcase1
         try:
-            os.makedirs(path.basename(newPathFull))
+            os.makedirs(path.dirname(newPathFull))
         except OSError:
             # Directory already exists
             pass
