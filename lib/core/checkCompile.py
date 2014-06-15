@@ -11,7 +11,7 @@ from log import log
 
 # Returns json object representing grade, the score will be 0 for unsuccessful
 # compile and 1 for successful compile
-def checkCompile(pathToCompileOut="results/compile_out.json"):
+def checkCompile(pathToCompileOut="compile_out.json"):
 
     log("Checking for compile success in " + path.abspath(pathToCompileOut))
 
@@ -49,4 +49,4 @@ if __name__ == "__main__":
         # No Readme directory path provided
         # Make sure we're in tmp directory
         checkPath()
-        print json.dumps(checkCompile("results/compile_out.json"),indent=4)
+        print json.dumps(checkCompile("compile_out.json"),indent=4)

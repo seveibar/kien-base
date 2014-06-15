@@ -73,6 +73,14 @@ def getNewSubmissions(submissionsPath, assignmentID):
 
     # Successfully loaded and parsed uploads.json
 
+    # Delete uploads.json so it can be populated with new uploads
+    try:
+        # TODO backup this file
+        os.remove(uploadsFilePath)
+    except:
+        print "ERROR: Couldn't remove uploads.json"
+        raise
+
     newSubmissions = []
 
     # Create SubmissionData object for every submission in uploads
@@ -214,7 +222,7 @@ def runTestCase(sandBoxPath, testCase):
     }
 
     # Get path to compile_out.json
-    compileOutPath = path.join(resultsPath, "compile_out.json")
+    compileOutPath = path.join(sandBoxPath, "compile_out.json")
 
     # Write to compile_out.json
     try:

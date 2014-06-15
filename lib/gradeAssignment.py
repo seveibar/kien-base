@@ -68,7 +68,7 @@ def gradeAssignment(basePath, assignmentID):
             testCaseResults.append((testCase, testCaseGrade))
 
             # Reset students directory
-            # cleanStudentDirectory(submissionPath, sandBoxPath)
+            cleanStudentDirectory(submissionPath, sandBoxPath)
 
         # Get final grade data from all the test case grades
         finalGrade = getFinalGrade(assignmentConfig,
